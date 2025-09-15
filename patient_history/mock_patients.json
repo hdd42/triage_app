@@ -1,0 +1,51 @@
+{
+  "DEMO_PATIENT": {
+    "patient_id": "MRN12345",
+    "last_visit_date": "2024-08-15",
+    "history_entries": [
+      {
+        "date": "2024-08-15",
+        "diagnosis": "Migraine headaches", 
+        "visit_type": "Follow-up"
+      },
+      {
+        "date": "2024-06-20",
+        "diagnosis": "Sleep disorder evaluation",
+        "visit_type": "Initial consultation"
+      },
+      {
+        "date": "2024-05-10", 
+        "diagnosis": "Intermittent episodes of confusion",
+        "visit_type": "Emergency visit"
+      }
+    ],
+    "medications": [
+      "Sumatriptan 50mg as needed",
+      "Melatonin 5mg nightly"
+    ],
+    "allergies": [
+      "Penicillin"
+    ]
+  },
+  "MRN67890": {
+    "patient_id": "MRN67890", 
+    "last_visit_date": "2024-07-30",
+    "history_entries": [
+      {
+        "date": "2024-07-30",
+        "diagnosis": "Hypertension management",
+        "visit_type": "Routine follow-up"
+      },
+      {
+        "date": "2024-05-15",
+        "diagnosis": "Hyperlipidemia", 
+        "visit_type": "Lab results review"
+      }
+    ],
+    "medications": [
+      "Lisinopril 10mg daily",
+      "Atorvastatin 20mg nightly"
+    ],
+    "allergies": []
+  }
+}

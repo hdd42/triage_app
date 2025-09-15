@@ -1,0 +1,14 @@
+fastapi
+uvicorn
+python-dotenv
+SQLAlchemy>=2.0
+aiosqlite
+pydantic>=2
+pydantic-ai
+openai>=1.0.0
+pydantic
+pydantic-ai
+sqladmin
+python-multipart
+Jinja2
+cryptography

@@ -1,0 +1,286 @@
+{
+  "clients": [
+    {
+      "id": "acme_childrens",
+      "name": "Acme Children's Hospital",
+      "description": null,
+      "version": "v1",
+      "rules": [
+        {
+          "id": "specialty_urgent_mapping_v1",
+          "version": "v1",
+          "type": "specialty_urgent_mapping",
+          "description": "Urgent diagnosis mapping by specialty from mapping_rules.json sample.",
+          "source": "mapping_rules.json",
+          "created_at": "2025-09-15T00:00:04.455517",
+          "updated_at": "2025-09-14T03:40:03Z",
+          "active": true,
+          "data": {
+            "ALLERGY": "No urgent diagnoses.",
+            "AUDIOLOGY": "No urgent diagnoses.",
+            "CARDIOLOGY": "Anything that cardiac specialist refer as urgent.\nHeart murmur: Newborn-4 weeks old.\nFeeding difficulties/FTT: Newborn-under 6 months of age.\no Weight gain concerns: Newborn-under 6 months of age.\nBreathing concerns: Newborn-under 6months of age.\nHydrops.",
+            "ENDOCRINOLOGY": "Diabetes diagnosis.\nGlucose >200.\nFasting glucose >126.\nA1C >6.5",
+            "EAR_NOSE_AND_THROAT_OTOLARYNGOLOGY": "Nasal Fracture.\nSevere Sleep Apnea.\nTongue Tie (Ankyloglossia) - 12 weeks & younger.\nParotitis with inflammation.",
+            "GASTROENTEROLOGY": "No urgent diagnoses.",
+            "GENERAL_SURGERY": "No urgent diagnoses.",
+            "GENDER_CLINIC": "No urgent diagnoses.",
+            "HEMATOLOGY_ANDONCOLOGY": "Cancer.\nHemoglobin <8.\nComing from ED.",
+            "GENETICS": "No urgent diagnoses.",
+            "GYNECOLOGY": "Early Puberty or precocious puberty.\nDelayed Puberty.\nAmbiguous genitalia.\nOvarian mass suspicious of cancer.",
+            "INFECTIOUS_DISEASE": "No urgent diagnoses.",
+            "NEUROLOGY": "Clinic question regarding seizure.\nSpasms.\nAbnormal MRI/EEG/CT.\nInfantile spasms.\nAbnormal jerking, involuntary movements.\nSandifer Syndrome.\nExcessive startle.\nNew onset seizure or seizure like events (excluding spacing out/staring spells).\nAny child < 2yrs old with seizures (this does not include febrile seizures).\nPapilledema\n2 or more ED visits for neuro diagnosis within the last 2 weeks.\nBrachial Plexus Injury.\nSpinal Muscular Atrophy.\nDuchenne muscular dystrophy (if the patient is a male between ages 3-5 years).\nElevated Creatine Kinase (ck).",
+            "NUTRITION": "Failure to thrive (any age).\nUnder 12 months (any diagnosis).",
+            "OPHTHALMOLOGY": "Cataract in kids.\nCorneal Abrasion.\nROP (retinopathy of prematurity).\nWhite pupil.",
+            "ORTHOPEDICS": "Any Fracture\nClubfoot - less than 1yr.\nHip dysplasia or pain - Less than 15yrs.\nDiagnosis of hip dysplasia with notes indicating SPICA (orthopedic cast hip or body cast), must have surgery report and images\nSCFE (Slipped Capital Femoral Epiphysis).",
+            "OCCUPATIONAL_THERAPY": "Torticollis.\nPlagiocephaly.",
+            "PULMONARY_FUNCTION_TESTING": "No urgent diagnoses.",
+            "PHYSICAL_THERAPY": "Torticollis.\nBrachial Plexus.\nNICU.\nNAS (neonatal abstinence syndrome).\nReferrals from NNFU clinic.\nInfants 12mo and younger.\nChronic pain or pain syndrome.\nAcute Juvenile rheumatoid arthritis.\nHemophilia.\nSpinal Muscular Atrophy.\nPlagiocephaly - If over 10 months, send for clinical review.\nPost-surgery.\nPost Inpatient stay.\nOncology patients.\nSports injury or orthopedic diagnosis (ex: knee pain, neck pain, back pain).\nConcussion.\nVestibular issues.",
+            "PULMONOLOGY_RESPIRATORY_AND_SLEEP_MEDICINE": "No urgent diagnoses.",
+            "SPEECH_THERAPY": "All Speech Cognitive rehab referrals.",
+            "WOUND_CARE": "All wound care referrals"
+          }
+        }
+      ],
+      "prompts": [
+        {
+          "id": "system_v1",
+          "version": "v1",
+          "role": "system",
+          "content": "You are an LLM-powered urgent diagnosis triage assistant for Acme Children's Hospital. Classify urgency as one of: immediate_emergency, urgent, non_urgent. Use the client-specific specialty rules where applicable. Provide a concise rationale and clear recommendations. This is not medical advice; include a safety disclaimer.",
+          "variables": null,
+          "locale": "en-US",
+          "created_at": "2025-09-15T00:00:04.455532",
+          "updated_at": "2025-09-15T00:00:04.455533",
+          "active": true
+        },
+        {
+          "id": "user_template_v1",
+          "version": "v1",
+          "role": "user_template",
+          "content": "Patient summary: {summary}\nSymptoms: {symptoms}\nOnset: {onset}\nSeverity: {severity}\nVitals: {vitals}\nHistory: {history}",
+          "variables": [
+            "summary",
+            "symptoms",
+            "onset",
+            "severity",
+            "vitals",
+            "history"
+          ],
+          "locale": "en-US",
+          "created_at": "2025-09-15T00:00:04.455537",
+          "updated_at": "2025-09-15T00:00:04.455538",
+          "active": true
+        }
+      ],
+      "tools": [
+        {
+          "name": "validate_insurance",
+          "description": "Validates patient insurance coverage and eligibility",
+          "enabled": true,
+          "config": {
+            "timeout_seconds": 30,
+            "required_fields": [
+              "patient_id",
+              "insurance_id"
+            ]
+          },
+          "created_at": "2025-09-15T00:00:04.455544",
+          "updated_at": "2025-09-15T00:00:04.455545"
+        },
+        {
+          "name": "check_patient_history",
+          "description": "Retrieves patient medical history and previous visits",
+          "enabled": true,
+          "config": {
+            "max_history_years": 5,
+            "include_medications": true
+          },
+          "created_at": "2025-09-15T00:00:04.455549",
+          "updated_at": "2025-09-15T00:00:04.455550"
+        }
+      ],
+      "created_at": "2025-09-15T00:00:04.455552",
+      "updated_at": "2025-09-15T00:00:04.455553",
+      "active": true
+    },
+    {
+      "id": "northstar_health",
+      "name": "NorthStar Health Network",
+      "description": null,
+      "version": "v1",
+      "rules": [
+        {
+          "id": "specialty_urgent_mapping_v1",
+          "version": "v1",
+          "type": "specialty_urgent_mapping",
+          "description": "NorthStar sample urgent mapping (POC).",
+          "source": "inline",
+          "created_at": "2025-09-15T00:00:04.455556",
+          "updated_at": "2025-09-14T03:40:03Z",
+          "active": true,
+          "data": {
+            "CARDIOLOGY": "Chest pain with red flags (exertional, radiating, syncope), palpitations with HR >180, cyanosis in neonate, syncope with exertion.",
+            "NEUROLOGY": "New focal neurologic deficit, first seizure in child <2y (non-febrile), recurrent seizures within 24h, severe headache with neck stiffness.",
+            "ENDOCRINOLOGY": "Suspected DKA: blood glucose >250 with polyuria/polydipsia, vomiting, or Kussmaul respirations.",
+            "OPHTHALMOLOGY": "Acute vision loss, white pupil (leukocoria), chemical eye exposure.",
+            "ORTHOPEDICS": "Open fracture, neurovascular compromise, suspected SCFE, severe deformity post-injury.",
+            "EAR_NOSE_AND_THROAT_OTOLARYNGOLOGY": "Epistaxis uncontrolled >30 minutes, suspected peritonsillar abscess, nasal fracture with deformity.",
+            "INFECTIOUS_DISEASE": "Fever with neck stiffness or petechial rash, suspected sepsis.",
+            "GASTROENTEROLOGY": "GI bleed (hematemesis/melena), severe dehydration from vomiting/diarrhea.",
+            "PULMONOLOGY_RESPIRATORY_AND_SLEEP_MEDICINE": "Asthma exacerbation not responsive to rescue inhaler, resting SpO2 <92%.",
+            "WOUND_CARE": "Deep laceration with gaping edges or uncontrolled bleeding."
+          }
+        }
+      ],
+      "prompts": [
+        {
+          "id": "system_v1",
+          "version": "v1",
+          "role": "system",
+          "content": "You are an LLM-powered urgent diagnosis triage assistant for NorthStar Health Network. Always bias toward safety when red flags are present. Classify urgency and provide rationale and next-step recommendations. Include a non-medical-advice disclaimer.",
+          "variables": null,
+          "locale": "en-US",
+          "created_at": "2025-09-15T00:00:04.455559",
+          "updated_at": "2025-09-15T00:00:04.455561",
+          "active": true
+        },
+        {
+          "id": "user_template_v1",
+          "version": "v1",
+          "role": "user_template",
+          "content": "Chief complaint: {summary}\nSymptoms: {symptoms}\nOnset: {onset}\nCourse: {course}\nSeverity: {severity}\nVitals: {vitals}\nHistory/meds: {history}",
+          "variables": [
+            "summary",
+            "symptoms",
+            "onset",
+            "course",
+            "severity",
+            "vitals",
+            "history"
+          ],
+          "locale": "en-US",
+          "created_at": "2025-09-15T00:00:04.455563",
+          "updated_at": "2025-09-15T00:00:04.455564",
+          "active": true
+        }
+      ],
+      "tools": [
+        {
+          "name": "validate_insurance",
+          "description": "NorthStar insurance validation system",
+          "enabled": true,
+          "config": {
+            "api_endpoint": "https://api.northstar.com/insurance",
+            "timeout_seconds": 45
+          },
+          "created_at": "2025-09-15T00:00:04.455566",
+          "updated_at": "2025-09-15T00:00:04.455567"
+        },
+        {
+          "name": "check_patient_history",
+          "description": "NorthStar patient history lookup",
+          "enabled": true,
+          "config": {
+            "max_history_years": 3,
+            "include_allergies": true
+          },
+          "created_at": "2025-09-15T00:00:04.455569",
+          "updated_at": "2025-09-15T00:00:04.455570"
+        }
+      ],
+      "created_at": "2025-09-15T00:00:04.455571",
+      "updated_at": "2025-09-15T00:00:04.455573",
+      "active": true
+    },
+    {
+      "id": "carewell_clinics",
+      "name": "CareWell Clinics",
+      "description": null,
+      "version": "v1",
+      "rules": [
+        {
+          "id": "specialty_urgent_mapping_v1",
+          "version": "v1",
+          "type": "specialty_urgent_mapping",
+          "description": "CareWell Clinics sample urgent mapping (POC).",
+          "source": "inline",
+          "created_at": "2025-09-15T00:00:04.455575",
+          "updated_at": "2025-09-14T03:40:03Z",
+          "active": true,
+          "data": {
+            "GENERAL_SURGERY": "Suspected appendicitis (RLQ pain with fever/vomiting), incarcerated hernia, postoperative complications with fever.",
+            "NEUROLOGY": "Head injury with red flags (LOC, vomiting, severe headache), new focal deficit, papilledema.",
+            "OPHTHALMOLOGY": "Corneal abrasion with severe pain, chemical burn, white pupil.",
+            "ORTHOPEDICS": "Any fracture with deformity, suspected septic joint, SCFE.",
+            "ENDOCRINOLOGY": "Symptomatic hypoglycemia not resolving with oral intake, hyperglycemia >300 with ketone odor.",
+            "HEMATOLOGY_ANDONCOLOGY": "Hemoglobin <8 or rapidly dropping, easy bruising with petechiae (consider urgent evaluation).",
+            "EAR_NOSE_AND_THROAT_OTOLARYNGOLOGY": "Foreign body aspiration suspected, airway compromise, severe sleep apnea.",
+            "PHYSICAL_THERAPY": "Post-op immediate needs or acute neurologic change — route for clinical review (not standard PT scheduling).",
+            "INFECTIOUS_DISEASE": "Febrile child with lethargy, neck stiffness, or rash suggestive of meningococcemia.",
+            "WOUND_CARE": "All deep or contaminated wounds requiring closure or irrigation."
+          }
+        }
+      ],
+      "prompts": [
+        {
+          "id": "system_v1",
+          "version": "v1",
+          "role": "system",
+          "content": "You are an LLM-powered urgent diagnosis triage assistant for CareWell Clinics. Use the provided specialty rules to guide urgency classification. Provide rationale and actionable next steps. Include a safety disclaimer.",
+          "variables": null,
+          "locale": "en-US",
+          "created_at": "2025-09-15T00:00:04.455577",
+          "updated_at": "2025-09-15T00:00:04.455578",
+          "active": true
+        },
+        {
+          "id": "user_template_v1",
+          "version": "v1",
+          "role": "user_template",
+          "content": "Summary: {summary}\nSymptoms: {symptoms}\nOnset: {onset}\nDuration: {duration}\nSeverity: {severity}\nVitals: {vitals}\nHistory: {history}",
+          "variables": [
+            "summary",
+            "symptoms",
+            "onset",
+            "duration",
+            "severity",
+            "vitals",
+            "history"
+          ],
+          "locale": "en-US",
+          "created_at": "2025-09-15T00:00:04.455580",
+          "updated_at": "2025-09-15T00:00:04.455581",
+          "active": true
+        }
+      ],
+      "tools": [
+        {
+          "name": "validate_insurance",
+          "description": "CareWell insurance verification",
+          "enabled": false,
+          "config": {
+            "note": "Currently disabled for CareWell - manual verification process"
+          },
+          "created_at": "2025-09-15T00:00:04.455584",
+          "updated_at": "2025-09-15T00:00:04.455585"
+        },
+        {
+          "name": "check_patient_history",
+          "description": "CareWell EHR history lookup",
+          "enabled": true,
+          "config": {
+            "max_history_years": 10,
+            "include_lab_results": true
+          },
+          "created_at": "2025-09-15T00:00:04.455595",
+          "updated_at": "2025-09-15T00:00:04.455596"
+        }
+      ],
+      "created_at": "2025-09-15T00:00:04.455597",
+      "updated_at": "2025-09-15T00:00:04.455598",
+      "active": true
+    }
+  ],
+  "version": "1.0",
+  "updated_at": "2025-09-15T03:13:17.771996"
+}

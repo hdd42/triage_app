@@ -1,0 +1,475 @@
+{% extends "base.html" %}
+
+{% block title %}Client Management - LLM-Powered Triage System{% endblock %}
+
+{% block content %}
+<div class="px-4 py-6 sm:px-0">
+    <div class="border-4 border-dashed border-gray-200 rounded-lg p-6">
+        
+        <!-- Header -->
+        <div class="mb-8">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">🏥 Client Management</h1>
+                    <p class="mt-2 text-gray-600">Manage client configurations, rules, and settings</p>
+                </div>
+                <div class="flex space-x-3">
+                    <a href="/ui/admin" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors">
+                        ← Back to Admin Dashboard
+                    </a>
+                    <button onclick="showCreateClientForm()" 
+                            class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+                        ➕ Add New Client
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div class="mb-6 flex space-x-3">
+            <button hx-get="/ui/admin/clients/list" 
+                    hx-target="#clients-container" 
+                    class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors">
+                🔄 Refresh Clients
+            </button>
+            <div class="text-sm text-gray-500 flex items-center">
+                <span id="client-count">Loading...</span>
+            </div>
+        </div>
+        
+        <!-- Clients Container -->
+        <div class="bg-white shadow rounded-lg">
+            <div class="px-4 py-5 sm:p-6">
+                <div id="clients-container" 
+                     hx-get="/ui/admin/clients/list" 
+                     hx-trigger="load">
+                    <!-- Loading placeholder -->
+                    <div class="animate-pulse space-y-4">
+                        <div class="border border-gray-200 rounded-lg p-4">
+                            <div class="flex justify-between items-start mb-2">
+                                <div class="space-y-2">
+                                    <div class="h-4 bg-gray-200 rounded w-1/4"></div>
+                                    <div class="h-3 bg-gray-200 rounded w-1/2"></div>
+                                </div>
+                                <div class="h-6 bg-gray-200 rounded w-16"></div>
+                            </div>
+                            <div class="grid grid-cols-4 gap-4 mb-3">
+                                <div class="h-3 bg-gray-200 rounded"></div>
+                                <div class="h-3 bg-gray-200 rounded"></div>
+                                <div class="h-3 bg-gray-200 rounded"></div>
+                                <div class="h-3 bg-gray-200 rounded"></div>
+                            </div>
+                            <div class="flex space-x-2">
+                                <div class="h-8 bg-gray-200 rounded w-20"></div>
+                                <div class="h-8 bg-gray-200 rounded w-16"></div>
+                                <div class="h-8 bg-gray-200 rounded w-16"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Client Management Modal -->
+<div id="client-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+    <div class="relative top-20 mx-auto p-5 border w-11/12 max-w-4xl shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+            <div id="client-modal-content">
+                <!-- Modal content will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Client Management Functions
+    function showCreateClientForm() {
+        document.getElementById('client-modal-content').innerHTML = `
+            <div class="flex items-center justify-center py-8">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                <span class="ml-2 text-gray-600">Loading form...</span>
+            </div>
+        `;
+        document.getElementById('client-modal').classList.remove('hidden');
+        
+        htmx.ajax('GET', '/ui/admin/clients/create-form', {
+            target: '#client-modal-content'
+        });
+    }
+    
+    function viewClientDetails(clientId) {
+        document.getElementById('client-modal-content').innerHTML = `
+            <div class="flex items-center justify-center py-8">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                <span class="ml-2 text-gray-600">Loading details...</span>
+            </div>
+        `;
+        document.getElementById('client-modal').classList.remove('hidden');
+        
+        htmx.ajax('GET', `/ui/admin/clients/${clientId}/details`, {
+            target: '#client-modal-content'
+        });
+    }
+    
+    function editClient(clientId) {
+        document.getElementById('client-modal-content').innerHTML = `
+            <div class="flex items-center justify-center py-8">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                <span class="ml-2 text-gray-600">Loading form...</span>
+            </div>
+        `;
+        document.getElementById('client-modal').classList.remove('hidden');
+        
+        htmx.ajax('GET', `/ui/admin/clients/${clientId}/edit-form`, {
+            target: '#client-modal-content'
+        });
+    }
+    
+    function confirmDeleteClient(clientId, clientName) {
+        if (confirm(`⚠️ Are you sure you want to delete client "${clientName}"?\n\nThis action cannot be undone.`)) {
+            htmx.ajax('DELETE', `/api/admin/clients/${clientId}`, {
+                swap: 'none'
+            }).then(() => {
+                alert('Client deleted successfully!');
+                closeModal();
+                // Refresh the clients list
+                htmx.trigger('#clients-container', 'load');
+                updateClientCount();
+            }).catch((error) => {
+                alert('Error deleting client: ' + error.message);
+            });
+        }
+    }
+    
+    function closeModal() {
+        document.getElementById('client-modal').classList.add('hidden');
+        document.getElementById('client-modal-content').innerHTML = '';
+    }
+    
+    function updateClientCount() {
+        // Update the client count display
+        setTimeout(() => {
+            const clientCards = document.querySelectorAll('#clients-container .border.border-gray-200');
+            const count = clientCards.length;
+            if (count > 0) {
+                document.getElementById('client-count').textContent = `${count} client${count !== 1 ? 's' : ''} configured`;
+            } else {
+                document.getElementById('client-count').textContent = 'No clients configured';
+            }
+        }, 500);
+    }
+    
+    // Close modal when clicking outside
+    document.getElementById('client-modal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeModal();
+        }
+    });
+    
+    // Close modal with Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && !document.getElementById('client-modal').classList.contains('hidden')) {
+            closeModal();
+        }
+    });
+    
+    // Handle form submissions with HTMX
+    document.addEventListener('submit', function(event) {
+        const form = event.target;
+        
+        if (form.id === 'createClientForm') {
+            event.preventDefault();
+            
+            const formData = new FormData(form);
+            const clientData = {
+                id: formData.get('id'),
+                name: formData.get('name'),
+                description: formData.get('description') || null,
+                version: formData.get('version') || 'v1',
+                active: formData.get('active') === 'on',
+                rules: [],
+                prompts: [],
+                tools: []
+            };
+            
+            // Process rules
+            const ruleInputs = {};
+            for (const [key, value] of formData.entries()) {
+                if (key.startsWith('rules[')) {
+                    const match = key.match(/rules\[(\d+)\]\[([^\]]+)\]/);
+                    if (match) {
+                        const [, index, field] = match;
+                        if (!ruleInputs[index]) ruleInputs[index] = {};
+                        if (field === 'data' || field === 'variables') {
+                            try {
+                                ruleInputs[index][field] = value ? JSON.parse(value) : (field === 'data' ? {} : null);
+                            } catch (e) {
+                                ruleInputs[index][field] = field === 'data' ? {} : null;
+                            }
+                        } else {
+                            ruleInputs[index][field] = value;
+                        }
+                    }
+                }
+            }
+            
+            for (const rule of Object.values(ruleInputs)) {
+                if (rule.id) {
+                    clientData.rules.push({
+                        id: rule.id,
+                        type: rule.type || 'custom',
+                        version: rule.version || 'v1',
+                        description: rule.description || null,
+                        source: rule.source || null,
+                        active: true,
+                        data: rule.data || {}
+                    });
+                }
+            }
+            
+            // Process prompts
+            const promptInputs = {};
+            for (const [key, value] of formData.entries()) {
+                if (key.startsWith('prompts[')) {
+                    const match = key.match(/prompts\[(\d+)\]\[([^\]]+)\]/);
+                    if (match) {
+                        const [, index, field] = match;
+                        if (!promptInputs[index]) promptInputs[index] = {};
+                        if (field === 'variables') {
+                            promptInputs[index][field] = value ? value.split(',').map(v => v.trim()).filter(v => v) : null;
+                        } else {
+                            promptInputs[index][field] = value;
+                        }
+                    }
+                }
+            }
+            
+            for (const prompt of Object.values(promptInputs)) {
+                if (prompt.id && prompt.content) {
+                    clientData.prompts.push({
+                        id: prompt.id,
+                        version: prompt.version || 'v1',
+                        role: prompt.role || 'system',
+                        content: prompt.content,
+                        variables: prompt.variables,
+                        locale: prompt.locale || 'en-US',
+                        active: true
+                    });
+                }
+            }
+            
+            // Process tools
+            const toolInputs = {};
+            for (const [key, value] of formData.entries()) {
+                if (key.startsWith('tools[')) {
+                    const match = key.match(/tools\[(\d+)\]\[([^\]]+)\]/);
+                    if (match) {
+                        const [, index, field] = match;
+                        if (!toolInputs[index]) toolInputs[index] = {};
+                        if (field === 'enabled') {
+                            toolInputs[index][field] = value === 'on';
+                        } else if (field === 'config') {
+                            try {
+                                toolInputs[index][field] = value ? JSON.parse(value) : {};
+                            } catch (e) {
+                                toolInputs[index][field] = {};
+                            }
+                        } else {
+                            toolInputs[index][field] = value;
+                        }
+                    }
+                }
+            }
+            
+            for (const tool of Object.values(toolInputs)) {
+                if (tool.name) {
+                    clientData.tools.push({
+                        name: tool.name,
+                        description: tool.description || null,
+                        enabled: tool.enabled !== false,
+                        config: tool.config || {}
+                    });
+                }
+            }
+            
+            console.log('Submitting client data:', clientData);
+            
+            fetch('/api/admin/clients', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(clientData)
+            }).then(response => {
+                if (response.ok) {
+                    alert('Client created successfully!');
+                    closeModal();
+                    htmx.trigger('#clients-container', 'load');
+                    updateClientCount();
+                } else {
+                    return response.json().then(err => {
+                        throw new Error(err.detail || 'Unknown error');
+                    });
+                }
+            }).catch((error) => {
+                console.error('Error:', error);
+                alert('Error creating client: ' + error.message);
+            });
+        }
+        
+        if (form.id === 'editClientForm') {
+            event.preventDefault();
+            
+            const formData = new FormData(form);
+            const clientId = formData.get('id');
+            const clientData = {
+                id: clientId,
+                name: formData.get('name'),
+                description: formData.get('description') || null,
+                version: formData.get('version') || 'v1',
+                active: formData.get('active') === 'on',
+                rules: [],
+                prompts: [],
+                tools: []
+            };
+            
+            // Process rules (same logic as create)
+            const ruleInputs = {};
+            for (const [key, value] of formData.entries()) {
+                if (key.startsWith('rules[')) {
+                    const match = key.match(/rules\[(\d+)\]\[([^\]]+)\]/);
+                    if (match) {
+                        const [, index, field] = match;
+                        if (!ruleInputs[index]) ruleInputs[index] = {};
+                        if (field === 'data') {
+                            try {
+                                ruleInputs[index][field] = value ? JSON.parse(value) : {};
+                            } catch (e) {
+                                ruleInputs[index][field] = {};
+                            }
+                        } else {
+                            ruleInputs[index][field] = value;
+                        }
+                    }
+                }
+            }
+            
+            for (const rule of Object.values(ruleInputs)) {
+                if (rule.id) {
+                    clientData.rules.push({
+                        id: rule.id,
+                        type: rule.type || 'custom',
+                        version: rule.version || 'v1',
+                        description: rule.description || null,
+                        source: rule.source || null,
+                        active: true,
+                        data: rule.data || {}
+                    });
+                }
+            }
+            
+            // Process prompts
+            const promptInputs = {};
+            for (const [key, value] of formData.entries()) {
+                if (key.startsWith('prompts[')) {
+                    const match = key.match(/prompts\[(\d+)\]\[([^\]]+)\]/);
+                    if (match) {
+                        const [, index, field] = match;
+                        if (!promptInputs[index]) promptInputs[index] = {};
+                        if (field === 'variables') {
+                            promptInputs[index][field] = value ? value.split(',').map(v => v.trim()).filter(v => v) : null;
+                        } else {
+                            promptInputs[index][field] = value;
+                        }
+                    }
+                }
+            }
+            
+            for (const prompt of Object.values(promptInputs)) {
+                if (prompt.id && prompt.content) {
+                    clientData.prompts.push({
+                        id: prompt.id,
+                        version: prompt.version || 'v1',
+                        role: prompt.role || 'system',
+                        content: prompt.content,
+                        variables: prompt.variables,
+                        locale: prompt.locale || 'en-US',
+                        active: true
+                    });
+                }
+            }
+            
+            // Process tools
+            const toolInputs = {};
+            for (const [key, value] of formData.entries()) {
+                if (key.startsWith('tools[')) {
+                    const match = key.match(/tools\[(\d+)\]\[([^\]]+)\]/);
+                    if (match) {
+                        const [, index, field] = match;
+                        if (!toolInputs[index]) toolInputs[index] = {};
+                        if (field === 'enabled') {
+                            toolInputs[index][field] = value === 'on';
+                        } else if (field === 'config') {
+                            try {
+                                toolInputs[index][field] = value ? JSON.parse(value) : {};
+                            } catch (e) {
+                                toolInputs[index][field] = {};
+                            }
+                        } else {
+                            toolInputs[index][field] = value;
+                        }
+                    }
+                }
+            }
+            
+            for (const tool of Object.values(toolInputs)) {
+                if (tool.name) {
+                    clientData.tools.push({
+                        name: tool.name,
+                        description: tool.description || null,
+                        enabled: tool.enabled !== false,
+                        config: tool.config || {}
+                    });
+                }
+            }
+            
+            console.log('Updating client data:', clientData);
+            
+            fetch(`/api/admin/clients/${clientId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(clientData)
+            }).then(response => {
+                if (response.ok) {
+                    alert('Client updated successfully!');
+                    closeModal();
+                    htmx.trigger('#clients-container', 'load');
+                } else {
+                    return response.json().then(err => {
+                        throw new Error(err.detail || 'Unknown error');
+                    });
+                }
+            }).catch((error) => {
+                console.error('Error:', error);
+                alert('Error updating client: ' + error.message);
+            });
+        }
+    });
+    
+    // Update client count when clients load
+    document.addEventListener('htmx:afterSwap', function(event) {
+        if (event.target.id === 'clients-container') {
+            updateClientCount();
+        }
+    });
+    
+    // Auto-refresh clients every 60 seconds
+    setInterval(() => {
+        htmx.trigger('#clients-container', 'load');
+    }, 60000);
+</script>
+{% endblock %}

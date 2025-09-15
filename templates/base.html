@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}LLM-Powered Triage System{% endblock %}</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- HTMX -->
+    <script src="https://unpkg.com/htmx.org@2.0.3"></script>
+    
+    <!-- Custom styles -->
+    <style>
+        .htmx-indicator {
+            opacity: 0;
+            transition: opacity 500ms ease-in;
+        }
+        .htmx-request .htmx-indicator {
+            opacity: 1;
+        }
+        .htmx-request.htmx-indicator {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-blue-600 text-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center space-x-8">
+                    <div class="flex-shrink-0">
+                        <h1 class="text-xl font-bold">🏥 Triage System</h1>
+                    </div>
+                    <!-- Desktop Navigation -->
+                    <div class="hidden md:block">
+                        <div class="ml-10 flex items-baseline space-x-4">
+                            <a href="/ui" class="{% if request.url.path == '/ui' %}bg-blue-700{% endif %} hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium">
+                                🩺 Triage
+                            </a>
+                            <a href="/ui/admin/clients" class="{% if request.url.path == '/ui/admin/clients' %}bg-blue-700{% endif %} hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium">
+                                🏥 Clients
+                            </a>
+                            <a href="/ui/admin" class="{% if request.url.path == '/ui/admin' %}bg-blue-700{% endif %} hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium">
+                                🔧 Admin
+                            </a>
+                            <a href="/sqladmin" target="_blank" class="hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium">
+                                🗄️ Database
+                            </a>
+                            <a href="/docs" target="_blank" class="hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium">
+                                📚 API Docs
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Mobile menu button -->
+                <div class="md:hidden">
+                    <button id="mobile-menu-button" class="inline-flex items-center justify-center p-2 rounded-md text-blue-200 hover:text-white hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white">
+                        <span class="sr-only">Open main menu</span>
+                        <!-- Menu icon -->
+                        <svg id="menu-icon" class="block h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                        <!-- Close icon -->
+                        <svg id="close-icon" class="hidden h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Mobile Navigation Menu -->
+        <div id="mobile-menu" class="md:hidden hidden">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-blue-700">
+                <a href="/ui" class="{% if request.url.path == '/ui' %}bg-blue-800{% endif %} text-white block px-3 py-2 rounded-md text-base font-medium hover:bg-blue-800">
+                    🩺 Triage
+                </a>
+                <a href="/ui/admin/clients" class="{% if request.url.path == '/ui/admin/clients' %}bg-blue-800{% endif %} text-white block px-3 py-2 rounded-md text-base font-medium hover:bg-blue-800">
+                    🏥 Clients
+                </a>
+                <a href="/ui/admin" class="{% if request.url.path == '/ui/admin' %}bg-blue-800{% endif %} text-white block px-3 py-2 rounded-md text-base font-medium hover:bg-blue-800">
+                    🔧 Admin
+                </a>
+                <a href="/sqladmin" target="_blank" class="text-white block px-3 py-2 rounded-md text-base font-medium hover:bg-blue-800">
+                    🗄️ Database
+                </a>
+                <a href="/docs" target="_blank" class="text-white block px-3 py-2 rounded-md text-base font-medium hover:bg-blue-800">
+                    📚 API Docs
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- HTMX Loading Indicator -->
+    <div id="loading-indicator" class="htmx-indicator fixed top-4 right-4 bg-blue-500 text-white px-4 py-2 rounded-lg shadow-lg">
+        <div class="flex items-center space-x-2">
+            <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span>Processing...</span>
+        </div>
+    </div>
+
+    <script>
+        // HTMX configuration
+        htmx.config.globalViewTransitions = true;
+        
+        // Add loading indicator to all HTMX requests
+        document.body.addEventListener('htmx:beforeRequest', function() {
+            document.getElementById('loading-indicator').classList.add('htmx-request');
+        });
+        
+        document.body.addEventListener('htmx:afterRequest', function() {
+            document.getElementById('loading-indicator').classList.remove('htmx-request');
+        });
+        
+        // Mobile menu toggle functionality
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const menuIcon = document.getElementById('menu-icon');
+        const closeIcon = document.getElementById('close-icon');
+        
+        if (mobileMenuButton && mobileMenu) {
+            mobileMenuButton.addEventListener('click', function() {
+                // Toggle mobile menu visibility
+                mobileMenu.classList.toggle('hidden');
+                
+                // Toggle icons
+                if (menuIcon && closeIcon) {
+                    menuIcon.classList.toggle('hidden');
+                    closeIcon.classList.toggle('hidden');
+                }
+            });
+            
+            // Close mobile menu when clicking on a link (optional UX improvement)
+            const mobileLinks = mobileMenu.querySelectorAll('a');
+            mobileLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    mobileMenu.classList.add('hidden');
+                    if (menuIcon && closeIcon) {
+                        menuIcon.classList.remove('hidden');
+                        closeIcon.classList.add('hidden');
+                    }
+                });
+            });
+        }
+    </script>
+</body>
+</html>

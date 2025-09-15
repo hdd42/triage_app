@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+
+{% block title %}Triage Analysis - LLM-Powered Triage System{% endblock %}
+
+{% block content %}
+<div class="px-4 py-6 sm:px-0">
+    <div class="border-4 border-dashed border-gray-200 rounded-lg">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6">
+            
+            <!-- Input Form -->
+            <div class="bg-white shadow-lg rounded-lg p-6">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">🩺 Medical Referral Triage</h2>
+                
+                <form hx-post="/api/triage/ui" 
+                      hx-target="#triage-result" 
+                      hx-indicator="#loading-indicator"
+                      hx-disabled-elt="form"
+                      class="space-y-6">
+                    
+                    <!-- Client Selection -->
+                    <div>
+                        <label for="client_id" class="block text-sm font-medium text-gray-700">Client</label>
+                        <select id="client_id" name="client_id" 
+                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                            <option value="acme_childrens">🏥 Acme Children's Hospital</option>
+                            <option value="northstar_health">⭐ NorthStar Health Network</option>
+                            <option value="carewell_clinics">🏩 CareWell Clinics</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Test Cases Quick Select -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Quick Test Cases</label>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <button type="button" onclick="loadTestCase('seizure')" 
+                                    class="px-3 py-2 text-sm bg-blue-100 text-blue-800 rounded-md hover:bg-blue-200 transition-colors">
+                                🧠 Seizure Case
+                            </button>
+                            <button type="button" onclick="loadTestCase('cardiac')" 
+                                    class="px-3 py-2 text-sm bg-red-100 text-red-800 rounded-md hover:bg-red-200 transition-colors">
+                                ❤️ Cardiac Emergency
+                            </button>
+                            <button type="button" onclick="loadTestCase('ambiguous')" 
+                                    class="px-3 py-2 text-sm bg-yellow-100 text-yellow-800 rounded-md hover:bg-yellow-200 transition-colors">
+                                🤔 Ambiguous Case
+                            </button>
+                            <button type="button" onclick="loadTestCase('orthopedic')" 
+                                    class="px-3 py-2 text-sm bg-green-100 text-green-800 rounded-md hover:bg-green-200 transition-colors">
+                                🦴 Hip Fracture
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Referral Text -->
+                    <div>
+                        <label for="referral_text" class="block text-sm font-medium text-gray-700">
+                            Referral Text (one page per line)
+                        </label>
+                        <textarea id="referral_text" name="referral_text" rows="12" 
+                                  placeholder="Enter referral text here, with each page on a separate line..."
+                                  class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"></textarea>
+                        <p class="mt-1 text-xs text-gray-500">Each line represents a page of the referral document</p>
+                    </div>
+                    
+                    <!-- Submit Button -->
+                    <div>
+                        <button type="submit" 
+                                class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                            🔍 Analyze Referral
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Results -->
+            <div class="bg-white shadow-lg rounded-lg p-6">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">📊 Analysis Results</h2>
+                
+                <div id="loading-indicator" class="htmx-indicator">
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                        <div class="flex items-center justify-center">
+                            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="triage-result">
+                    <div class="bg-gray-50 rounded-lg p-8 text-center">
+                        <div class="text-gray-400 text-6xl mb-4">🔍</div>
+                        <p class="text-gray-500">Submit a referral to see triage analysis results</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Test case data
+    const testCases = {
+        seizure: {
+            client_id: 'acme_childrens',
+            text: `Patient: 6-year-old male
+Chief Complaint: New onset generalized tonic-clonic seizures
+History: Previously healthy child presented to ED after experiencing his first seizure at home this morning. Episode lasted approximately 3 minutes with loss of consciousness, generalized shaking, and post-ictal confusion lasting 15 minutes.
+Additional Episodes: Parents report second similar episode occurred 2 hours later while in ED waiting room, lasting 2 minutes.
+Current Status: Child now alert and oriented but appears fatigued. No fever, no recent illness, no head trauma. Family history negative for seizure disorders.
+Vital Signs: Stable, afebrile`
+        },
+        cardiac: {
+            client_id: 'northstar_health', 
+            text: `Patient: 58-year-old male with history of hypertension and diabetes
+Chief Complaint: Crushing chest pain for past 2 hours
+Presentation: Patient describes severe substernal chest pain radiating to left arm and jaw, started while mowing lawn. Associated with shortness of breath, nausea, and diaphoresis.
+Vital Signs: BP 160/95, HR 105, O2 sat 96% on room air
+EKG: ST elevation in leads II, III, aVF consistent with inferior STEMI
+Labs: Troponin I elevated at 12.5 ng/mL (normal <0.04), CK-MB elevated
+Current Status: Pain partially relieved with nitroglycerin, patient stable but requires urgent intervention`
+        },
+        ambiguous: {
+            client_id: 'northstar_health',
+            text: `Patient: 45-year-old female with multiple medical problems
+Chief Complaint: Chest discomfort and shortness of breath for 2 days
+History: Patient describes atypical chest discomfort, sometimes sharp, sometimes dull, location varies. Associated with mild shortness of breath, especially with exertion. Symptoms worse in evening.
+Background: Recent upper respiratory infection 1 week ago, stress at work, irregular sleep pattern
+Past Medical History: Anxiety disorder, GERD, fibromyalgia, prior PE 3 years ago on warfarin
+Physical Exam: Appears anxious, vitals normal, chest clear, heart regular rate and rhythm
+Initial workup: EKG normal, basic metabolic panel normal
+NOTE: Patient history in EMR shows similar presentations in past, usually related to anxiety or GERD, but given PE history, further evaluation may be warranted`
+        },
+        orthopedic: {
+            client_id: 'carewell_clinics',
+            text: `Patient: 78-year-old female with history of osteoporosis
+Mechanism: Ground-level fall at home 4 hours ago while getting up from chair
+Symptoms: Severe right hip pain, unable to bear weight, right leg appears shortened and externally rotated
+Imaging: X-ray shows displaced right femoral neck fracture
+Medical History: Osteoporosis, takes alendronate, otherwise healthy and independent
+Social: Lives alone, no family nearby
+Current Status: Pain controlled with morphine, hemodynamically stable, no other injuries noted`
+        }
+    };
+    
+    function loadTestCase(caseType) {
+        const testCase = testCases[caseType];
+        if (testCase) {
+            document.getElementById('client_id').value = testCase.client_id;
+            document.getElementById('referral_text').value = testCase.text;
+        }
+    }
+    
+    // HTMX will handle form submission automatically as form data
+    // No need for custom JSON conversion since /api/triage/ui expects form data
+</script>
+{% endblock %}

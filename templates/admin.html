@@ -1,0 +1,455 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - LLM-Powered Triage System{% endblock %}
+
+{% block content %}
+<div class="px-4 py-6 sm:px-0">
+    <div class="border-4 border-dashed border-gray-200 rounded-lg p-6">
+        
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900">🔧 Admin Dashboard</h1>
+            <p class="mt-2 text-gray-600">View and manage triage requests and system data</p>
+            <div class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <h3 class="font-medium text-blue-900 mb-2">📊 Available Admin Interfaces:</h3>
+                <ul class="text-sm text-blue-800 space-y-1">
+                    <li>• <strong>This Dashboard:</strong> View logs, stats, and perform system actions</li>
+                    <li>• <strong>Database Admin:</strong> Direct table access with SQLAdmin interface</li>
+                    <li>• <strong>API Docs:</strong> Swagger UI for testing API endpoints</li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8" 
+             hx-get="/ui/admin/stats" 
+             hx-trigger="load" 
+             hx-swap="innerHTML">
+            <!-- Loading placeholders -->
+            <div class="bg-white overflow-hidden shadow rounded-lg animate-pulse">
+                <div class="p-5"><div class="h-16 bg-gray-200 rounded"></div></div>
+            </div>
+            <div class="bg-white overflow-hidden shadow rounded-lg animate-pulse">
+                <div class="p-5"><div class="h-16 bg-gray-200 rounded"></div></div>
+            </div>
+            <div class="bg-white overflow-hidden shadow rounded-lg animate-pulse">
+                <div class="p-5"><div class="h-16 bg-gray-200 rounded"></div></div>
+            </div>
+        </div>
+        
+        <!-- Triage Logs -->
+        <div class="bg-white shadow rounded-lg">
+            <div class="px-4 py-5 sm:p-6">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">📋 Recent Triage Requests</h3>
+                
+                <!-- Controls -->
+                <div class="mb-4 flex space-x-2">
+                    <button hx-get="/ui/admin/logs" 
+                            hx-target="#logs-container" 
+                            class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+                        🔄 Refresh
+                    </button>
+                    <button onclick="toggleDetails()" 
+                            class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors">
+                        👁️ Toggle Details
+                    </button>
+                </div>
+                
+                <!-- Logs Container -->
+                <div id="logs-container" 
+                     hx-get="/ui/admin/logs" 
+                     hx-trigger="load">
+                    <!-- Loading placeholder -->
+                    <div class="animate-pulse">
+                        <div class="space-y-2">
+                            <div class="h-4 bg-gray-200 rounded w-3/4"></div>
+                            <div class="h-4 bg-gray-200 rounded w-1/2"></div>
+                            <div class="h-4 bg-gray-200 rounded w-2/3"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Client Management -->
+        <div class="mt-8 bg-white shadow rounded-lg">
+            <div class="px-4 py-5 sm:p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-medium text-gray-900">🏥 Client Management</h3>
+                    <div class="flex space-x-2">
+                        <a href="/ui/admin/clients" class="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors">
+                            📝 Full Client Manager
+                        </a>
+                        <button onclick="showCreateClientForm()" 
+                                class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+                            ➕ Add Client
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Controls -->
+                <div class="mb-4 flex space-x-2">
+                    <button hx-get="/ui/admin/clients/list" 
+                            hx-target="#clients-container" 
+                            class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors">
+                        🔄 Refresh Clients
+                    </button>
+                </div>
+                
+                <!-- Clients Container -->
+                <div id="clients-container" 
+                     hx-get="/ui/admin/clients/list" 
+                     hx-trigger="load">
+                    <!-- Loading placeholder -->
+                    <div class="animate-pulse">
+                        <div class="space-y-4">
+                            <div class="border border-gray-200 rounded-lg p-4">
+                                <div class="h-4 bg-gray-200 rounded w-1/4 mb-2"></div>
+                                <div class="h-3 bg-gray-200 rounded w-1/2 mb-2"></div>
+                                <div class="grid grid-cols-4 gap-4">
+                                    <div class="h-3 bg-gray-200 rounded"></div>
+                                    <div class="h-3 bg-gray-200 rounded"></div>
+                                    <div class="h-3 bg-gray-200 rounded"></div>
+                                    <div class="h-3 bg-gray-200 rounded"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- System Actions -->
+        <div class="mt-8 bg-white shadow rounded-lg">
+            <div class="px-4 py-5 sm:p-6">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">⚙️ System Actions</h3>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+                    
+                    <!-- Test Encryption -->
+                    <button hx-get="/admin/encryption/test" 
+                            hx-target="#action-result"
+                            class="p-4 bg-green-50 border border-green-200 rounded-lg hover:bg-green-100 transition-colors text-left">
+                        <div class="text-green-600 text-2xl mb-2">🔐</div>
+                        <h4 class="font-medium text-gray-900">Test Encryption</h4>
+                        <p class="text-sm text-gray-600">Verify health data encryption</p>
+                    </button>
+                    
+                    <!-- Database Stats -->
+                    <button hx-get="/ui/admin/db-stats" 
+                            hx-target="#action-result"
+                            class="p-4 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors text-left">
+                        <div class="text-blue-600 text-2xl mb-2">📊</div>
+                        <h4 class="font-medium text-gray-900">Database Stats</h4>
+                        <p class="text-sm text-gray-600">View table statistics</p>
+                    </button>
+                    
+                    <!-- View Clients -->
+                    <button hx-get="/clients" 
+                            hx-target="#action-result"
+                            class="p-4 bg-purple-50 border border-purple-200 rounded-lg hover:bg-purple-100 transition-colors text-left">
+                        <div class="text-purple-600 text-2xl mb-2">🏥</div>
+                        <h4 class="font-medium text-gray-900">View Clients</h4>
+                        <p class="text-sm text-gray-600">List available clients</p>
+                    </button>
+                    
+                    <!-- Database Admin -->
+                    <a href="/sqladmin" target="_blank" 
+                       class="p-4 bg-indigo-50 border border-indigo-200 rounded-lg hover:bg-indigo-100 transition-colors text-left block">
+                        <div class="text-indigo-600 text-2xl mb-2">🗄️</div>
+                        <h4 class="font-medium text-gray-900">Database Admin</h4>
+                        <p class="text-sm text-gray-600">View tables directly</p>
+                    </a>
+                    
+                    <!-- Recreate DB (Dangerous) -->
+                    <button onclick="confirmDatabaseRecreate()" 
+                            class="p-4 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition-colors text-left">
+                        <div class="text-red-600 text-2xl mb-2">⚠️</div>
+                        <h4 class="font-medium text-gray-900">Recreate DB</h4>
+                        <p class="text-sm text-gray-600">⚠️ Delete all data</p>
+                    </button>
+                </div>
+                
+                <!-- Action Results -->
+                <div id="action-result" class="mt-6"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Decrypted Data Modal -->
+<div id="decrypted-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+    <div class="relative top-20 mx-auto p-5 border w-11/12 max-w-4xl shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-medium text-gray-900">🔓 Decrypted Triage Log Data</h3>
+                <button onclick="closeDecryptedModal()" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-medium text-red-800">⚠️ Protected Health Information (PHI)</h3>
+                        <div class="mt-1 text-sm text-red-700">
+                            This data contains sensitive medical information. Handle according to HIPAA guidelines.
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="decrypted-content" class="max-h-96 overflow-y-auto bg-gray-50 rounded-lg p-4">
+                <!-- Decrypted content will be loaded here -->
+            </div>
+            
+            <div class="flex justify-end mt-4">
+                <button onclick="closeDecryptedModal()" 
+                        class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Client Management Modal -->
+<div id="client-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+    <div class="relative top-20 mx-auto p-5 border w-11/12 max-w-4xl shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+            <div id="client-modal-content">
+                <!-- Modal content will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let detailsVisible = false;
+    
+    function toggleDetails() {
+        detailsVisible = !detailsVisible;
+        const details = document.querySelectorAll('.log-details');
+        details.forEach(detail => {
+            detail.style.display = detailsVisible ? 'block' : 'none';
+        });
+    }
+    
+    function confirmDatabaseRecreate() {
+        if (confirm('⚠️ WARNING: This will permanently delete ALL data in the database. Are you sure?')) {
+            if (confirm('This action cannot be undone. Type YES in the next dialog to confirm.')) {
+                const confirmation = prompt('Type "DELETE ALL DATA" to confirm:');
+                if (confirmation === 'DELETE ALL DATA') {
+                    htmx.ajax('POST', '/admin/database/recreate', {
+                        target: '#action-result'
+                    });
+                } else {
+                    alert('Database recreation cancelled.');
+                }
+            }
+        }
+    }
+    
+    function viewDecryptedLog(logId) {
+        if (confirm('⚠️ This will display decrypted PHI. Continue?')) {
+            // Show loading in modal
+            document.getElementById('decrypted-content').innerHTML = `
+                <div class="flex items-center justify-center py-8">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    <span class="ml-2 text-gray-600">Decrypting data...</span>
+                </div>
+            `;
+            
+            // Show the modal
+            document.getElementById('decrypted-modal').classList.remove('hidden');
+            
+            // Load decrypted data
+            htmx.ajax('GET', `/ui/admin/triage-log/${logId}/decrypted`, {
+                target: '#decrypted-content'
+            });
+        }
+    }
+    
+    function closeDecryptedModal() {
+        document.getElementById('decrypted-modal').classList.add('hidden');
+        // Clear content for security
+        document.getElementById('decrypted-content').innerHTML = '';
+    }
+    
+    // Close modal when clicking outside
+    document.getElementById('decrypted-modal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeDecryptedModal();
+        }
+    });
+    
+    // Close modal with Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            if (!document.getElementById('decrypted-modal').classList.contains('hidden')) {
+                closeDecryptedModal();
+            } else if (!document.getElementById('client-modal').classList.contains('hidden')) {
+                closeModal();
+            }
+        }
+    });
+    
+    // Auto-refresh logs every 30 seconds
+    setInterval(() => {
+        htmx.trigger('#logs-container', 'load');
+    }, 30000);
+    
+    // Client Management Functions
+    function showCreateClientForm() {
+        document.getElementById('client-modal-content').innerHTML = `
+            <div class="flex items-center justify-center py-8">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                <span class="ml-2 text-gray-600">Loading form...</span>
+            </div>
+        `;
+        document.getElementById('client-modal').classList.remove('hidden');
+        
+        htmx.ajax('GET', '/ui/admin/clients/create-form', {
+            target: '#client-modal-content'
+        });
+    }
+    
+    function viewClientDetails(clientId) {
+        document.getElementById('client-modal-content').innerHTML = `
+            <div class="flex items-center justify-center py-8">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                <span class="ml-2 text-gray-600">Loading details...</span>
+            </div>
+        `;
+        document.getElementById('client-modal').classList.remove('hidden');
+        
+        htmx.ajax('GET', `/ui/admin/clients/${clientId}/details`, {
+            target: '#client-modal-content'
+        });
+    }
+    
+    function editClient(clientId) {
+        document.getElementById('client-modal-content').innerHTML = `
+            <div class="flex items-center justify-center py-8">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                <span class="ml-2 text-gray-600">Loading form...</span>
+            </div>
+        `;
+        document.getElementById('client-modal').classList.remove('hidden');
+        
+        htmx.ajax('GET', `/ui/admin/clients/${clientId}/edit-form`, {
+            target: '#client-modal-content'
+        });
+    }
+    
+    function confirmDeleteClient(clientId, clientName) {
+        if (confirm(`⚠️ Are you sure you want to delete client "${clientName}"?\n\nThis action cannot be undone.`)) {
+            htmx.ajax('DELETE', `/api/admin/clients/${clientId}`, {
+                swap: 'none'
+            }).then(() => {
+                alert('Client deleted successfully!');
+                closeModal();
+                // Refresh the clients list
+                htmx.trigger('#clients-container', 'load');
+            }).catch((error) => {
+                alert('Error deleting client: ' + error.message);
+            });
+        }
+    }
+    
+    function closeModal() {
+        document.getElementById('client-modal').classList.add('hidden');
+        document.getElementById('client-modal-content').innerHTML = '';
+    }
+    
+    // Close modal when clicking outside
+    document.getElementById('client-modal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeModal();
+        }
+    });
+    
+    // Handle form submissions
+    document.addEventListener('htmx:afterRequest', function(event) {
+        // Handle create client form submission
+        if (event.detail.requestConfig && event.detail.requestConfig.path === '/api/admin/clients' && event.detail.requestConfig.verb === 'post') {
+            if (event.detail.xhr.status === 200 || event.detail.xhr.status === 201) {
+                alert('Client created successfully!');
+                closeModal();
+                htmx.trigger('#clients-container', 'load');
+            } else {
+                alert('Error creating client. Please check the form and try again.');
+            }
+        }
+        
+        // Handle update client form submission
+        if (event.detail.requestConfig && event.detail.requestConfig.path.includes('/api/admin/clients/') && event.detail.requestConfig.verb === 'put') {
+            if (event.detail.xhr.status === 200) {
+                alert('Client updated successfully!');
+                closeModal();
+                htmx.trigger('#clients-container', 'load');
+            } else {
+                alert('Error updating client. Please check the form and try again.');
+            }
+        }
+    });
+    
+    // Handle form submissions with HTMX
+    document.addEventListener('submit', function(event) {
+        const form = event.target;
+        
+        if (form.id === 'createClientForm') {
+            event.preventDefault();
+            
+            const formData = new FormData(form);
+            const clientData = {
+                id: formData.get('id'),
+                name: formData.get('name'),
+                description: formData.get('description') || null,
+                active: formData.get('active') === 'on'
+            };
+            
+            htmx.ajax('POST', '/api/admin/clients', {
+                values: clientData,
+                swap: 'none'
+            }).then(() => {
+                alert('Client created successfully!');
+                closeModal();
+                htmx.trigger('#clients-container', 'load');
+            }).catch(() => {
+                alert('Error creating client. Please check the form and try again.');
+            });
+        }
+        
+        if (form.id === 'editClientForm') {
+            event.preventDefault();
+            
+            const formData = new FormData(form);
+            const clientId = formData.get('id');
+            const clientData = {
+                name: formData.get('name'),
+                description: formData.get('description') || null,
+                active: formData.get('active') === 'on'
+            };
+            
+            htmx.ajax('PUT', `/api/admin/clients/${clientId}`, {
+                values: clientData,
+                swap: 'none'
+            }).then(() => {
+                alert('Client updated successfully!');
+                closeModal();
+                htmx.trigger('#clients-container', 'load');
+            }).catch(() => {
+                alert('Error updating client. Please check the form and try again.');
+            });
+        }
+    });
+</script>
+{% endblock %}
