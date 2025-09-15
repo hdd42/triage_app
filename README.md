@@ -288,4 +288,3 @@ intake_t/
 
 ---
 
-**Built for production healthcare environments with enterprise-grade security and scalability.**
